@@ -85,6 +85,8 @@ class TestGetDefaultHermesRoot:
             ({"LOCALAPPDATA": str(local), "HERMES_HOME": str(custom / "profiles" / "work")}, custom),
             ({"LOCALAPPDATA": str(local), "HERMES_DATA_DIR_SUFFIX": "-magic"}, local / "hermes-magic"),
             ({"localappdata": str(local), "HERMES_HOME": "%LocalAppData%\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "$LOCALAPPDATA\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "${LOCALAPPDATA}\\data"}, local / "data"),
             ({"LOCALAPPDATA": str(local), "USERPROFILE": str(user), "HERMES_HOME": "~\\data"}, user / "data"),
             ({"USERPROFILE": str(user)}, user / "AppData" / "Local" / "hermes"),
             ({"LOCALAPPDATA": str(local), "HERMES_HOME": "relative\\data"}, None),

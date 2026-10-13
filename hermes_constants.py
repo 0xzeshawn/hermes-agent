@@ -74,17 +74,17 @@ def _hermes_root_of(native_home: Path, env_path: Path | None) -> Path:
     return native_home
 
 
-_ENV_REFERENCE = re.compile(r"%([^%]+)%")
+_ENV_REFERENCE = re.compile(r"%([^%]+)%|\$\{([^}]+)\}|\$([A-Za-z0-9_-]+)")
 
 
 def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
     """The Hermes root that a process started with *environ* resolves, or None.
 
     Applies the root rules of ``get_default_hermes_root`` to another process's
-    environment. ``%NAME%`` references and a leading ``~`` expand from *environ*
-    alone, never from this process. Returns None when the answer depends on
-    anything outside *environ*: a relative HERMES_HOME, an undefined variable,
-    or a missing user profile folder.
+    environment. ``%NAME%``, ``${NAME}`` and ``$NAME`` references and a leading
+    ``~`` expand from *environ* alone, never from this process. Returns None
+    when the answer depends on anything outside *environ*: a relative
+    HERMES_HOME, an undefined variable, or a missing user profile folder.
     """
     names = {key.upper(): value for key, value in environ.items()}
     profile = names.get("USERPROFILE" if sys.platform == "win32" else "HOME", "").strip()
@@ -99,7 +99,7 @@ def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
         native_home = _platform_default_hermes_home(names, user_home)
         if not raw:
             return native_home
-        expanded = _ENV_REFERENCE.sub(lambda match: names[match.group(1).upper()], raw)
+        expanded = _ENV_REFERENCE.sub(lambda match: names[match.group(match.lastindex).upper()], raw)
         if expanded == "~" or expanded.startswith(("~/", "~\\")):
             expanded = str(user_home()) + expanded[1:]
     except LookupError:
