@@ -306,7 +306,7 @@ def migrate_windows_bin_path(
 
         if not owns_user_path(home):
             return False  # new consoles resolve another home; leave the User PATH to it
-    except Exception:  # an old updater may still hold the previous _launchers module
+    except (ImportError, OSError, ValueError):  # an old updater's _launchers, or a failed Win32 call
         return False
 
     if read_user_path is None:
