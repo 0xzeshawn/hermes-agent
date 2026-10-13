@@ -170,6 +170,17 @@ def test_new_console_environment_ignores_this_process(tmp_path, monkeypatch):
     assert environ.get("HERMES_HOME") != str(tmp_path / "hermes")
 
 
+@pytest.mark.platforms("windows")
+def test_environment_block_reader_counts_utf16_units():
+    """An emoji takes two UTF-16 units but one Python character; the variables after it must survive."""
+    import ctypes
+
+    block = ctypes.create_unicode_buffer("A=1\0MOOD=\U0001F600\0HERMES_HOME=C:\\h\0=C:=C:\\\0\0")
+
+    assert _launchers._read_environment_block(ctypes.addressof(block)) == {
+        "A": "1", "MOOD": "\U0001F600", "HERMES_HOME": "C:\\h"}
+
+
 def test_registered_as_a_home_step():
     assert ("expose_cli", _launchers.expose_cli) in post_update.HOME_STEPS
 

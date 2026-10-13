@@ -829,18 +829,30 @@ def _new_console_environment() -> dict[str, str] | None:
     try:
         if not userenv.CreateEnvironmentBlock(ctypes.byref(block), token, False):
             return None
-        environ: dict[str, str] = {}
-        cursor = block.value
-        while entry := ctypes.wstring_at(cursor):
-            name, _, value = entry.partition("=")
-            if name:  # "=C:=C:\..." entries carry per-drive directories, not variables
-                environ[name.upper()] = value
-            cursor += (len(entry) + 1) * ctypes.sizeof(ctypes.c_wchar)
-        return environ
+        return _read_environment_block(block.value)
     finally:
         if block.value:
             userenv.DestroyEnvironmentBlock(block)
         kernel32.CloseHandle(token)
+
+
+def _read_environment_block(address: int) -> dict[str, str]:
+    """Parse a Windows environment block: NUL-terminated UTF-16 ``NAME=value`` entries, then an empty one.
+
+    The cursor advances by UTF-16 code units, not Python characters: a value
+    holding a character outside the Basic Multilingual Plane (an emoji) takes
+    two units and one character.
+    """
+    import ctypes
+
+    environ: dict[str, str] = {}
+    cursor = address
+    while entry := ctypes.wstring_at(cursor):
+        name, _, value = entry.partition("=")
+        if name:  # "=C:=C:\..." entries carry per-drive directories, not variables
+            environ[name.upper()] = value
+        cursor += len(entry.encode("utf-16-le", "surrogatepass")) + ctypes.sizeof(ctypes.c_wchar)
+    return environ
 
 
 def new_console_hermes_root() -> Path | None:
