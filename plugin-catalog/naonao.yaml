@@ -1,0 +1,16 @@
+name: naonao
+repo: https://github.com/0xzeshawn/hermes-naonao-plugin
+sha: a52a3f5765eab704764d0332023ce16ae0cd4c96
+description: >
+  Connect a self-hosted Hermes agent to NaoNao community channels.
+  The adapter replies to @mentions and application commands, and can
+  deliver proactive messages to a home channel set with /sethome.
+maintainer: NaoNao
+tier: community
+category: platform
+version: "1.0.1"
+title: NaoNao
+docs_url: https://naonaoai.com/docs/hermes
+capabilities:
+  requires_env:
+    - NAONAO_BOT_TOKEN
